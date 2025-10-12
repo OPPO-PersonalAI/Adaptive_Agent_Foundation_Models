@@ -1,0 +1,24 @@
+#Configure .env before start server!!
+
+# wiki_rag_server
+WIKI_RAG_SERVER_URL="http://123.123.123.123:1234/retrieve"
+
+# jina api
+JINA_BASE_URL="https://URL.URL.URL/"
+JINA_API_KEY="jina_key1|jina_key2"
+
+# serper api
+SERPAPI_BASE_URL="https://url.url.url/search"
+WEB_SEARCH_SERPER_API_KEY="key1|key2"
+
+# code server
+NSJAILPATH="/path/to/nsjail"
+
+# server config
+SERVER_HOST="123.123.123.123"
+CRAWL_PAGE_PORT="123"
+WEBSEARCH_PORT="123"
+CODE_EXEC_PORT="123"
+
+
+
