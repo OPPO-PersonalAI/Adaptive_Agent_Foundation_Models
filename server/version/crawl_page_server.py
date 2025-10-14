@@ -193,7 +193,7 @@ class CrawlPageServer:
             "- Keep the summary under 500 words"
         )
 
-    def get_summary_prompt(self, web_search_query: str, think_content: str, page_contents: str, summary_prompt_type: str = "webthinker", click_intent: str = "") -> str:
+    def get_summary_prompt(self, web_search_query: str, page_contents: str, think_content: str= "", summary_prompt_type: str = "webthinker", click_intent: str = "") -> str:
         page_contents = page_contents[:60000]
         if summary_prompt_type == "webthinker":
             prompt = f"""

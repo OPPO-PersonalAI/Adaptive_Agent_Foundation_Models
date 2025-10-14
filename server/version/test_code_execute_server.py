@@ -4,7 +4,7 @@ Quick test for CodeExec server
 
 Usage:
 python test_code_execute_server.py <endpoint_url>
-Example: python test_code_execute_server_v4.py http://127.0.0.1:9006/code_exec
+Example: python test_code_execute_server.py http://127.0.0.1:9006/code_exec
 """
 
 import argparse
@@ -20,7 +20,6 @@ def test_code_exec_service():
     # Test data
     test_cases = [
         {
-            "desc": "Addition",
             "code_str_list": [
 '''
 ```python
@@ -42,11 +41,8 @@ print("[OUTPUT]:", result)
 '''
             ],
             "parameter_list": [],
-            "task": "Test Addition",
-            "messages": None
         },
         {
-            "desc": "Test Exception",
             "code_str_list": [
 '''
 ```python
@@ -59,14 +55,11 @@ print("[OUTPUT]:", result)
 '''
             ],
             "parameter_list": [],
-            "task": "Test Exception",
-            "messages": None
         }
     ]
 
     for data in test_cases:
         print("\n" + "="*20)
-        print(f"Test case: {data['desc']}")
         print("="*20)
         try:
             url = args.endpoint_url

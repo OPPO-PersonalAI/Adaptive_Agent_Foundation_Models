@@ -20,7 +20,7 @@ from requests.exceptions import RequestException
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.AFM_sandbox_python_executor import (
+from AFM_sandbox_python_executor import (
     SandboxPythonExecutor,
     parse_code_blobs,
     truncate_content,
@@ -97,7 +97,6 @@ class CodeExecuteServer:
         try:
             logger.info("--------- Start processing the code_exec request ---------")
             logger.info(f"Processing {len(request.code_str_list)} code snippets: \n{request.code_str_list}\n")
-            logger.info(f"Request details: task='{request.task}'")
 
             loop = asyncio.get_running_loop()
 

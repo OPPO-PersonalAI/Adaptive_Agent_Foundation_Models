@@ -28,7 +28,7 @@ if [[ "$cmd" == "start" ]]; then
     echo "CrawlPage is already running (PID $(cat "$pidf"))"
   else
     echo "Starting CrawlPage on port $SERVER_HOST:$CRAWL_PAGE_PORT..."
-    nohup python -u "$DIR/v4/crawl_page_server_v4.py" > "$logf" 2>&1 &
+    nohup python -u "$DIR/version/crawl_page_server.py" > "$logf" 2>&1 &
     echo $! > "$pidf"
   fi
 
@@ -39,7 +39,7 @@ if [[ "$cmd" == "start" ]]; then
     echo "WebSearch is already running (PID $(cat "$pidf"))"
   else
     echo "Starting WebSearch on port $SERVER_HOST:$WEBSEARCH_PORT..."
-    nohup python -u "$DIR/v4/cache_serper_server_v4.py" > "$logf" 2>&1 &
+    nohup python -u "$DIR/version/cache_serper_server.py" > "$logf" 2>&1 &
     echo $! > "$pidf"
   fi
 
@@ -50,7 +50,7 @@ if [[ "$cmd" == "start" ]]; then
     echo "CodeExec is already running (PID $(cat "$pidf"))"
   else
     echo "Starting CodeExec on port $SERVER_HOST:$CODE_EXEC_PORT..."
-    nohup python -u "$DIR/v4/code_execute_server.py" > "$logf" 2>&1 &
+    nohup python -u "$DIR/version/code_execute_server.py" > "$logf" 2>&1 &
     echo $! > "$pidf"
   fi
 
@@ -59,20 +59,20 @@ if [[ "$cmd" == "start" ]]; then
 # ---------------------------------------------
 elif [[ "$cmd" == "test" ]]; then
   echo "--------------------Setting Test Environment Variables------------------"
-  source "$DIR/v4/TestEnvironment.sh"
+  source "$DIR/version/TestEnvironment.sh"
   echo "--------------------Setup Successful------------------"
 
   echo "--------------------Starting web search test------------------"
-  python -u "$DIR/v4/test_cache_serper_server_v4.py" \
+  python -u "$DIR/version/test_cache_serper_server.py" \
           "http://$SERVER_HOST:$WEBSEARCH_PORT/search"
   echo "-------------------------Test Completed--------------------------"
   echo "--------------------Starting crawl page test-------------------"
-  python -u "$DIR/v4/test_crawl_page_simple_v4.py" \
+  python -u "$DIR/version/test_crawl_page_simple.py" \
           "http://$SERVER_HOST:$CRAWL_PAGE_PORT/crawl_page"
   echo "-------------------------Test Completed--------------------------"
 
   echo "--------------------Starting code exec test-------------------"
-  python -u "$DIR/v4/test_code_execute_server_v4.py" \
+  python -u "$DIR/version/test_code_execute_server.py" \
           "http://$SERVER_HOST:$CODE_EXEC_PORT/code_exec"
   echo "-------------------------Test Completed--------------------------"
 

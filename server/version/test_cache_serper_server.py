@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Test Serper v4 service, Serper v4 includes serper (with cache) + crawl_page + summary integrated functionality
 Usage:
-python test_cache_serper_server_v4.py <endpoint_url>
-e.g. python test_cache_serper_server_v4.py http://127.0.0.1:9002/search
-e.g. python test_cache_serper_server_v4.py http://10.236.17.172:9002/search
+python test_cache_serper_server.py <endpoint_url>
+e.g. python test_cache_serper_server.py http://127.0.0.1:9002/search
+e.g. python test_cache_serper_server.py http://10.236.17.172:9002/search
 """
 
 import argparse
@@ -48,5 +47,17 @@ def test_serper_proxy(endpoint_url: str, query: str, num: int = 10, use_crawl: b
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    print("=== TEST without crawl ===")
-    test_serper_proxy("url", "dog|cat", num=10)
+    parser = argparse.ArgumentParser(description="Test Serper Cache Server")
+    parser.add_argument(
+        "endpoint_url", 
+        type=str, 
+        help="The Serper proxy endpoint URL (e.g. http://127.0.0.1:9002/search)"
+    )
+    args = parser.parse_args()
+    print("=== TEST: Search ===")
+    test_serper_proxy(
+        endpoint_url=args.endpoint_url,  # 读取命令行传入的地址
+        query="dog|cat",  # 搜索关键词（可自定义，如"AI latest news"）
+        num=10  # 返回10条结果
+    )
+

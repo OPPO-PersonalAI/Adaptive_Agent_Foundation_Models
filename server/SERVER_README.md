@@ -1,159 +1,168 @@
-# Tool Server Quick Start Guide
+# Quick Start Guide for Tool Servers
+
 ## 📋 Quick Start
-Supported tool servers:
-| Server Name | Description | File | Test |
-| --- | --- | --- | --- |
-| serper_cache_v4 | Google Search (with cache) + Multiple API polling + JINA Reader (default no crawl during search) + Summary | cache_serper_server_v4.py | test_cache_serper_server_v4.py |
-| crawl_page_v4 | JINA Reader + Multiple API polling + Summary | crawl_page_server_v4.py | crawl_page_server_test_v4.py |
-| code_exec | Execute code in nsjail sandbox environment | code_execute_server.py | test_code_execute_server_v4.py |
+Currently, the following three types of tool servers are supported, with key information provided in the table below:
 
-**Notes**: 
-  1. Please configure environment variables in servers/.env, refer to servers/.env_template
+| Server Name      | Core Function Description                                                                 | Main Program File          | Test File                  |
+| ---------------- | ---------------------------------------------------------------------------------------- | -------------------------- | -------------------------- |
+| serper_cache     | Google Search (with cache) + Multi-API Polling + Result Summarization                     | cache_serper_server.py     | test_cache_serper_server.py|
+| crawl_page       | JINA Reader Web Crawling + Multi-API Polling + Content Summarization                       | crawl_page_server.py       | crawl_page_server_test.py  |
+| code_exec        | Secure execution of Python code in the nsjail sandbox environment                          | code_execute_server.py     | test_code_execute_server.py|
 
 
-### Shell Scripts
+### ⚠️ Notes
+1. Install Dependencies: Run the command below to install the dependency packages listed in `server/requirements.txt`
+    ```bash
+    pip install -r requirements.txt
+    ```
+2. Code Server-related Configuration (required when using the code_exec server or when this function is needed during training):
+   - Clone and compile nsjail:
+     ```bash
+     git clone https://github.com/google/nsjail.git
+     cd nsjail
+     make
+     ```
+   - Add the absolute path of nsjail to the `/server/env_template` file:
+     ```
+     NSJAILPATH="/abs_path/to/your/nsjail/nsjail"
+     ```
+3. Environment Variable Configuration: Environment variables must be configured in the `servers/.env` file. For a configuration template, refer to the `servers/.env_template` file.
+
+
+### 🚀 Shell Script Operations
+The following scripts allow for quick management of starting, stopping, and status checking for all servers. Before operation, you must first navigate to the `server/` directory:
 
 ```bash
-# cd to server/
+# 1. Navigate to the server directory (mandatory step)
 cd server/
 
-# help
-./start_servers.sh --help
-
-# Start default tools for inference
-./start_servers.sh --infer
-
-# Start default tools for training
-./start_servers.sh --train
-
-# Stop all servers
+# 2. Stop all running servers
 ./start_servers.sh stop
 
-# Check server status
+# 3. Check the running status of all servers
 ./start_servers.sh status
 
-# Start all servers
+# 4. Start all servers
 ./start_servers.sh start
 ```
 
+
 ## 🧪 Verify Servers
-After executing the `start_servers.sh` script, functional test scripts will run automatically. If you need to test a specific server individually, you can execute the test scripts in the `server/server_tests/` directory. These test scripts provide specific command examples.
+1. After executing the `start_servers.sh start` script, the system will **automatically run the functional test scripts for all servers**—no manual triggering is required.
+2. If you need to test a specific server individually, you can directly execute the corresponding test script in the `server/server_tests/` directory. Each test script contains specific examples of execution commands.
 
-## Tool Server Interfaces
 
-### 1. Serper Cache Server v4 (Multiple API Search + Optional JINA Reader Crawling + Summary)
-- **File**: `cache_serper_server_v4.py`
-- **Port**: Default 9002
-- **Interface**: `POST /search`
-- **Function**: Multiple API Google Search (with cache) + Optional JINA Reader Crawling + AI Summary
-- **Authentication**: Request header no longer needs `X-API-KEY`, please set the environment variable `WEB_SEARCH_SERPER_API_KEY`, APIs separated by '|'. Example: `KEY1|KEY2`
-- **Request Format**:
-  ```json
-  {
-    "q": "search query"(required),
-    "num": 10(required)
-  }
-  ```
-- **Response Format**:
-  - **Without crawling** (`use_crawl=false`):
-    ```json
-    {
-      "organic": [
-        {
-          "title": "Page title",
-          "link": "https://example.com",
-          "snippet": "Page summary"
-        }
-      ],
-      "searchParameters": {...}
-    }
-    ```
-  - **With crawling** (`use_crawl=true`): Returns crawled and summarized text content
+## 🔌 Tool Server Interface Details
+Below are the interface specifications, request/response formats, and function descriptions for each server, which can be integrated as needed.
 
-### 2. Crawl Page Server v4 (Multiple API Concurrent Page Crawling + Summary)
-- **File**: `crawl_page_server_v4.py`
-- **Port**: Default 9000
-- **Interface**: `POST /crawl_page`
-- **Function**: Multiple API Concurrent JINA Reader Page Crawling and AI Summary Generation
-- **Request Format**:
-  ```json
-  {
-    "urls": ["https://example.com", "https://example2.com"] (required),
-    "task": "task description"(required),
-    "web_search_query": "search query"(required),
-    "think_content": "thinking content"(required),
-    "summary_type": "once"(optional),
-    "do_last_summary": false(optional),
-    "chunk_size": 8192(optional),
-    "api_url": "API address"(required),
-    "api_key": "API key"(required),
-    "model": "model name"(required),
-    "messages": "message history"(optional)
-  }
-  ```
-- **Summary Type Description**:
-  - `"none"`: No summarization, directly connect content
-  - `"once"`: One-time summarization of all content
-  - `"chunk"`: Summarize by chunks (configurable chunk_size)
-  - `"page"`: Summarize by page
-- **Response Format**:
-  ```json
-  {
-    "success": true,
-    "obs": "crawled and summarized content",
-    "error_message": null,
-    "processing_time": 12.34
-  }
-  ```
+### 1. Serper Cache Server (Multi-API Search + Optional JINA Reader Crawling + Summarization)
+- **Main Program File**: `cache_serper_server.py`
+- **Default Port**: 9002
+- **Core Interface**: `POST /search`
+- **Function Positioning**: Google Search based on multiple APIs (supports result caching) and automatic AI summary generation
+- **Environment Variable Requirement**: The `WEB_SEARCH_SERPER_API_KEY` must be configured in the environment variables. For multiple API keys, separate them with `|` (example: `KEY1|KEY2`)
 
-Getting parameters for calling the crawl_page tool from the trace:
-```xml
-Extracting parameters needed for calling the crawl_page tool from the trajectory:
-```xml
-<think> earlier think_content </think>
-<web_search> most recent web_search_query </web_search>
-...
-<think> most recent think_content </think>
-<crawl_page> url_1 | url_2 | ... </crawl_page> <---- calling the crawl_page tool
+#### Request Format (JSON)
+```json
+{
+  "q": "Search query content",  // Mandatory field: enter the keywords/question to be searched
+  "num": 10                     // Mandatory field: specify the number of search results to return
+}
 ```
 
-Parameters needed when calling the crawl_page tool:
-1. urls - List of URLs to crawl = [url_1, url_2, ...]
-2. think_content - Most recent thinking content = "most recent think_content"
-3. web_search_query - Most recent search query = "most recent web_search_query"
-4. task - Original question (not needed for now, can pass a placeholder)
-5. api_url, api_key, model - summary model configuration
+#### Response Format (JSON)
+```json
+{
+  "organic": [         // List of search results
+    {
+      "title": "Page Title",    // Title of the webpage corresponding to the search result
+      "link": "https://example.com",  // Webpage link
+      "snippet": "Page Summary" // AI-generated summary of the webpage content
+    }
+  ],
+  "searchParameters": {}  // Details of the search request parameters (e.g., query term, number of results)
+}
+```
+
+
+### 2. Crawl Page Server (Multi-API Concurrent Webpage Crawling + Summarization)
+- **Main Program File**: `crawl_page_server.py`
+- **Default Port**: 9000
+- **Core Interface**: `POST /crawl_page`
+- **Function Positioning**: Concurrent calls to JINA Reader via multiple APIs to crawl specified webpage content, and generate AI summaries based on configurations
+
+#### Request Format (JSON)
+```json
+{
+  "urls": ["https://example.com", "https://example2.com"],  // Mandatory field: list of webpage URLs to crawl
+  "web_search_query": "Search query content",              // Mandatory field: associated search keywords (used to optimize summaries)
+  "think_content": "Thinking content",                     // Optional field: supplementary contextual description
+  "summary_prompt_type": "webthinker_with_goal",           // Optional field: summary prompt type (default value shown below)
+  "summary_type": "once",                                  // Optional field: summary method (default value shown below)
+  "do_last_summary": false,                                // Optional field: whether to perform a secondary summary on the final result (default: false)
+  "chunk_size": 8192,                                      // Optional field: content chunk size for chunk-based summarization (default: 8192 characters)
+  "api_url": "API address of the summary model",           // Mandatory field: API endpoint of the summary model
+  "api_key": "API key",                                    // Mandatory field: API key for calling the summary model
+  "model": "Name of the summary model",                    // Mandatory field: name of the summary model used
+  "messages": "Message history"                            // Optional field: conversation history context (for multi-turn summarization)
+}
+```
+
+#### Key Parameter Description
+- **summary_prompt_type (Summary Prompt Type)**:
+  - `webthinker_with_goal` (default): Goal-oriented thinking-style prompt
+  - `webdancer_with_goal`: Goal-oriented process-style prompt
+  - `webthinker`: Basic thinking-style prompt
+  - `webdancer`: Basic process-style prompt
+
+- **summary_type (Summary Method)**:
+  - `"none"`: Do not generate a summary; return the crawled original content directly (concatenated only)
+  - `"once"`: Perform a **one-time aggregated summary** of all crawled content (default)
+  - `"chunk"`: Split content according to the configured `chunk_size` and summarize each chunk individually
+  - `"page"`: Summarize by URL (one independent summary per webpage)
+
+#### Response Format (JSON)
+```json
+{
+  "success": true,                // Server execution status (true = success, false = failure)
+  "obs": "Content after crawling and summarization",  // Core result: text after processing
+  "error_message": null,          // Error message (null if successful; specific reason shown if failed)
+  "processing_time": 12.34        // Processing time (unit: seconds)
+}
+```
+
 
 ### 3. Code Exec Server (Python Code Execution)
-- **File**: `code_execute_server.py`
-- **Port**: Default 9003
-- **Endpoint**: `POST /code_exec`
-- **Function**: Execute Python code in a sandbox environment
-- **Request Format**:
-  - **Code_str** (needs to be in markdown format):
-    ```json
-    {
-      "desc": "Simple addition" (optional),
-      "code_str_list": ["code1", "code2"](required),
-      "parameter_list": [] (optional),
-      "task": "Test addition" (optional),
-    }
-    ```
-- **Response Format**:
-  ```json
-  {
-    "success": True or False (service execution status),
-    "obs": [[True or False (code execution status), (actual code output), (code exit status or error message)] (code 1 result), [...] (code 2 result)], 
-    "error_message": (server error message), 
-    "processing_time": (server processing time)
-  }
-  ```
-- **Example** :
-  ```json
-  {
-    "success": True,
-    "obs": [[True, '[OUTPUT]: 5', '[EXECUTED] Code exited with status 0.'], [True, '[OUTPUT]: -11', '[EXECUTED] Code exited with status 0.']], 
-    "error_message": None, 
-    "processing_time": 0.07729768753051758
-  }
-  ```
+- **Main Program File**: `code_execute_server.py`
+- **Default Port**: 9003
+- **Core Interface**: `POST /code_exec`
+- **Function Positioning**: Securely execute Python code in the nsjail sandbox environment to avoid local environment contamination
+
+#### Request Format (JSON)
+```json
+{
+  "code_str_list": ["print(1+4)", "print(2-13)"],  // Mandatory field: list of Python code snippets to execute (each element is a segment of code)
+  "parameter_list": [],           // Optional field: list of parameters required for code execution (leave empty if no parameters are needed)
+}
+```
+
+#### Response Format (JSON)
+```json
+{
+  "success": true,                // Overall server execution status (true = server normal, false = server abnormal)
+  "obs": [                        // List of code execution details (corresponds to the order of code_str_list)
+    [
+      true,                       // Execution result of a single code segment (true = success, false = failure)
+      "[OUTPUT]: 5",              // Code execution output (e.g., results, printed content)
+      "[EXECUTED] Code exited with status 0."  // Execution status description (success/error information)
+    ],
+    [
+      true,
+      "[OUTPUT]: -11",
+      "[EXECUTED] Code exited with status 0."
+    ]
+  ],
+  "error_message": null,          // Server-level error message (null if no error occurs)
+  "processing_time": 0.07729768753051758  // Overall processing time (unit: seconds)
+}
+```

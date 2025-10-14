@@ -3,8 +3,8 @@
 Quick test for CrawlPage server
 
 Usage:
-python test_crawl_page_simple_v2.py <endpoint_url>
-e.g. python test_crawl_page_simple_v4.py http://127.0.0.1:9000/crawl_page
+python test_crawl_page_simple.py <endpoint_url>
+e.g. python test_crawl_page_simple.py http://127.0.0.1:9000/crawl_page
 """
 
 import argparse
@@ -15,7 +15,7 @@ import time
 import requests
 
 # Create argument parser
-parser = argparse.ArgumentParser(description='Crawl page test script v4.')
+parser = argparse.ArgumentParser(description='Crawl page test script.')
 parser.add_argument('endpoint_url', type=str, help='The endpoint URL to test against (e.g., http://127.0.0.1:9000/crawl_page)')
 
 # Parse command line arguments
@@ -44,8 +44,7 @@ data_webthinker_with_goal = {
     "web_search_query": "qwen is developed by?",
     "think_content": "I want to know who delelop qwen?",
     "summary_prompt_type": "webthinker_with_goal",
-    "summary_type": "page",
-    # API KEY
+    "summary_type": "once",
     "api_url": api_url,
     "api_key": api_key,
     "model": model,
@@ -84,7 +83,7 @@ data_webdancer = {
     "api_url": api_url,
     "api_key": api_key,
     "model": model,
-    "summary_type": "page",
+    "summary_type": "once",
     "summary_prompt_type": "webdancer",
 }
 
