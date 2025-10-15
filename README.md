@@ -1,7 +1,6 @@
 <div align="center">
 
-<h2>A^2FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning</h2>
-
+<h2>A<sup>2</sup>FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning</h2>
 </div>
 
 <div align="center">
@@ -11,7 +10,7 @@
   <a href='https://huggingface.co/collections/PersonalAILab/afm-datasets-6892140eaad360ea5ccdcde1'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-Huggingface-yellow'></a>
 </div>
 
-This is the official repository for our paper "A^2FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning". This is an adaptive branch of [AFM](https://github.com/OPPO-PersonalAI/Agent_Foundation_Models/). Different problems are solved using different modes (agentic, reasoning, instant) to ensure that every token consumption is put to the best use. Our work provides an approach that leverages the accuracy rate in inter-gro2up rollouts within Reinforcement Learning (RL), using the difficulty level of problems to train the model's adaptive capability.
+This is the official repository for our paper "A<sup>2</sup>FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning". This is an adaptive branch of [AFM](https://github.com/OPPO-PersonalAI/Agent_Foundation_Models/). Different problems are solved using different modes (agentic, reasoning, instant) to ensure that every token consumption is put to the best use. Our work provides an approach that leverages the accuracy rate in inter-gro2up rollouts within Reinforcement Learning (RL), using the difficulty level of problems to train the model's adaptive capability.
 
 <div align="center">
   <img src="./assets/adaptive_afm.jpg" width="95%" height="auto" />
@@ -19,23 +18,19 @@ This is the official repository for our paper "A^2FM: An Adaptive Agent Foundati
 
 # Overview 🎯
 
-A^2FM presents a **unified framework** that bridges the gap between reasoning-centric and agentic LLMs through adaptive mode selection, achieving superior performance while dramatically reducing costs.
+A<sup>2</sup>FM presents a **unified framework** that bridges the gap between reasoning-centric and agentic LLMs through adaptive mode selection, achieving superior performance while dramatically reducing costs.
 
 <div align="center">
   <img src="./assets/first_pic.jpg" width="95%" height="auto" />
 </div>
 
 ## Key Innovations & Highlights
-
-🧠 **Route-then-Align Principle**: A unified framework that bridges reasoning-centric and agentic LLMs through adaptive mode selection, eliminating the inefficiency gap where both families tend to overthink or over-call tools.
-
-⚡ **Three-Mode Architecture**: 
-- **Instant Mode**: Direct reasoning for simple tasks (no tool calls)
-- **Agentic Mode**: Tool-augmented reasoning for complex problems  
-- **Reasoning Mode**: Deep chain-of-thought for analytical tasks
-
-🎯 **Adaptive Policy Optimization (APO)**: The key to training efficient models - enforces adaptive sampling across modes with cost-regularized rewards.
-
+- 🧠 **Route-then-Align Principle**: A unified framework that bridges reasoning-centric and agentic LLMs through adaptive mode selection, eliminating the inefficiency gap where both families tend to overthink or over-call tools.
+- ⚡ **Three-Mode Architecture**: 
+  - **Instant Mode**: Direct reasoning for simple tasks (no tool calls)
+  - **Agentic Mode**: Tool-augmented reasoning for complex problems  
+  - **Reasoning Mode**: Deep chain-of-thought for analytical tasks
+- 🎯 **Adaptive Policy Optimization (APO)**: The key to training efficient models - enforces adaptive sampling across modes with cost-regularized rewards.
 ### Training Efficient Models with APO
 
 <div align="center">
@@ -54,13 +49,13 @@ A^2FM presents a **unified framework** that bridges the gap between reasoning-ce
 - **$0.00487 per correct answer** - substantially higher cost efficiency while maintaining comparable accuracy
 
 # Table of Contents
-
-- [Overview](#overview-)
+- [Overview 🎯](#overview-)
   - [Key Innovations & Highlights](#key-innovations--highlights)
   - [Training Efficient Models with APO](#training-efficient-models-with-apo)
 - [Quick Start](#quick-start)
-  - [Tool Server Deployment](#1-tool-server-deployment)
-  - [Model Download & Inference](#2-model-download--inference)
+  - [1. Tool Server Deployment](#1-tool-server-deployment)
+  - [2. Model Download & Inference](#2-model-download--inference)
+    - [Install Dependencies](#install-dependencies)
     - [Model Download](#model-download)
     - [Deploy Model Server](#deploy-model-server)
     - [Run Inference](#run-inference)
@@ -105,7 +100,7 @@ You can directly download the model by following the links below.
 
 | Model | Download Links | Model Size | Context Length |
 | :-----------------: | :-----------------------------------------: | :----------: | :--------------: |
-| A^2FM-32B-rl | [🤗 HuggingFace](https://huggingface.co/PersonalAILab/A2FM-32B-rl) | 32B | 128K |
+| A<sup>2</sup>FM-32B-rl | [🤗 HuggingFace](https://huggingface.co/PersonalAILab/A2FM-32B-rl) | 32B | 128K |
 
 **Alternative Download Methods:**
 
@@ -118,7 +113,7 @@ You can directly download the model by following the links below.
 
 ### Deploy Model Server
 
-Deploy A^2FM using vLLM for high-performance inference:
+Deploy A<sup>2</sup>FM using vLLM for high-performance inference:
 
 ```bash
 cd ./deploy
@@ -222,7 +217,7 @@ We would like to express our sincere gratitude to the original authors and contr
 
 ## Citation
 
-If you find `A^2FM` useful in your research or applications, we would appreciate it if you could cite our work:
+If you find A<sup>2</sup>FM useful in your research or applications, we would appreciate it if you could cite our work:
 
 ```bibtex
 @article{xxxx,
