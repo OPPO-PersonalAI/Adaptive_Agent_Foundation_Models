@@ -9,7 +9,6 @@ Example: python test_code_execute_server.py http://127.0.0.1:9006/code_exec
 
 import argparse
 import json
-import time
 import requests
 
 def test_code_exec_service():

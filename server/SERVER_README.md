@@ -13,6 +13,7 @@ Currently, the following three types of tool servers are supported, with key inf
 ### ⚠️ Notes
 1. Install Dependencies: Run the command below to install the dependency packages listed in `server/requirements.txt`
     ```bash
+    cd ./server
     pip install -r requirements.txt
     ```
 2. Code Server-related Configuration (required when using the code_exec server or when this function is needed during training):
@@ -22,11 +23,11 @@ Currently, the following three types of tool servers are supported, with key inf
      cd nsjail
      make
      ```
-   - Add the absolute path of nsjail to the `/server/env_template` file:
+   - Save absolute path of nsjail:
      ```
      NSJAILPATH="/abs_path/to/your/nsjail/nsjail"
      ```
-3. Environment Variable Configuration: Environment variables must be configured in the `servers/.env` file. For a configuration template, refer to the `servers/.env_template` file.
+3. Environment Variable Configuration: Environment variables must be configured in the `servers/.env` file. For a configuration template, refer to the `servers/env_template` file.
 
 
 ### 🚀 Shell Script Operations
@@ -47,9 +48,10 @@ cd server/
 ```
 
 
-## 🧪 Verify Servers
-1. After executing the `start_servers.sh start` script, the system will **automatically run the functional test scripts for all servers**—no manual triggering is required.
-2. If you need to test a specific server individually, you can directly execute the corresponding test script in the `server/server_tests/` directory. Each test script contains specific examples of execution commands.
+## 🧪 Test Servers
+1. Configure environment variables in the `servers/.env` file and execute the `start_servers.sh start` startup script.
+2. Run `start_servers.sh test` to test all services.
+3. To test a specific server, configure environment variables in `server/version/TestEnvironment.sh` and directly execute the corresponding test script in the `server/server_tests/` directory. Each test script contains specific execution command examples.
 
 
 ## 🔌 Tool Server Interface Details
@@ -153,12 +155,12 @@ Below are the interface specifications, request/response formats, and function d
   "obs": [                        // List of code execution details (corresponds to the order of code_str_list)
     [
       true,                       // Execution result of a single code segment (true = success, false = failure)
-      "[OUTPUT]: 5",              // Code execution output (e.g., results, printed content)
+      "5",              // Code execution output (e.g., results, printed content)
       "[EXECUTED] Code exited with status 0."  // Execution status description (success/error information)
     ],
     [
       true,
-      "[OUTPUT]: -11",
+      "-11",
       "[EXECUTED] Code exited with status 0."
     ]
   ],

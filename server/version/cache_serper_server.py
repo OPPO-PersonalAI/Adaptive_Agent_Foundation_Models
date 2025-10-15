@@ -542,12 +542,3 @@ if __name__ == "__main__":
     logger.info(f"Start the Serper cache server... http://{host}:{port}")
     logger.info(f"Ready to search")
     uvicorn.run(app, host=host, port=port)
-
-
-'''
-source .envrc
-python server/cache_serper_server_v4.py
-
-# To test the server:
-# python server_tests/test_cache_serper_server_v4.py
-'''

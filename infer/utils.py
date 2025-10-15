@@ -146,168 +146,35 @@ def count_tokens(text, tokenizer):
         return 0
     return len(tokenizer.encode(text))
 
-
-def truncate_special_tokens(text: str, max_tokens: int, tokenizer: str) -> str:
+def extract_specific_tag_parallel_toolcalldict(text, allowed_tags=None):
     """
-    Divide the text according to special tokens, count the number of tokens, and retain the content from the end based on the maximum number of tokens.
-    Only retain the <plan>, <|FunctionExecute|> tags and the one preceding <think> tag, and delete other tags.
+    Extract specific tags and their content from a text, with special handling for 'tool_call' tags.
+    Supports parallel tool calls parsing and error handling for invalid formats.
     
     Parameters:
-    text (str): Text containing special tokens
-    max_tokens (int): Maximum number of tokens to retain
-    model (str): Model name used for tokenization, default is "gpt-4-1106-preview"
+        text (str): The input text containing tagged segments
+        allowed_tags (List[str], optional): List of allowed tag names. 
+            Defaults to ['answer', 'plan', 'summary', 'classification', 'reasoning', 'tool_call']
     
     Returns:
-    str: Truncated text
+        Tuple[Optional[str], Optional[str], str, Union[List[Dict], str]]: A tuple containing:
+            - think_content: The content before the last tag (if exists)
+            - last_content: Any content after the last closing tag (if exists)
+            - tool: The name of the last tag found
+            - parsed_content: Parsed content, which is a list of dictionaries for 'tool_call' 
+              or a string for other tags
+    
+    Exceptions:
+        Asserts may fail if the text structure doesn't match expected tagged format
     """
-    
-    # Define the regular expression pattern for special tokens
-    token_pattern = r'<[^>]+>|</[^>]+>'
-    
-    # Split the text according to special tokens
-    segments = re.split(f'({token_pattern})', text)
-    segments = [seg for seg in segments if seg] 
-    
-    if not segments:
-        return ""
-    
-    # Calculate the number of tokens in each segment
-    segment_tokens = []
-    for segment in segments:
-        tokens = tokenizer.encode(segment)
-        segment_tokens.append((segment, len(tokens)))
-    
-    # Find the positions of all plan and reflection tags
-    keep_tags = ['plan', 'reflection']
-    keep_tag_indices = []
-    
-    for i, (segment, _) in enumerate(segment_tokens):
-        tag_match = re.match(r'<(/?)([^>]+)>', segment)
-        if tag_match:
-            is_closing = tag_match.group(1) == '/'
-            tag_name = tag_match.group(2)
-            if tag_name in keep_tags:
-                keep_tag_indices.append((i, tag_name, is_closing))
-    
-    # Collect the indexes of special tag fragments that need to be retained
-    special_indices = set()
-    
-    # Process each special tag to ensure that the tag pairs are complete.
-    for i, tag_name, is_closing in keep_tag_indices:
-        if is_closing:
-            # Closing tag, find the corresponding opening tag
-            start_idx = -1
-            depth = 0
-            for j in range(i, -1, -1):
-                seg = segment_tokens[j][0]
-                m = re.match(r'<(/?)([^>]+)>', seg)
-                if m:
-                    current_tag = m.group(2)
-                    if current_tag == tag_name:
-                        if m.group(1) == '/':
-                            depth += 1
-                        else:
-                            depth -= 1
-                            if depth == 0:
-                                start_idx = j
-                                break
-            if start_idx != -1:
-                for idx in range(start_idx, i + 1):
-                    special_indices.add(idx)
-        else:
-            # Start tag, find the corresponding end tag
-            end_idx = -1
-            depth = 0
-            for j in range(i, len(segments)):
-                seg = segment_tokens[j][0]
-                m = re.match(r'<(/?)([^>]+)>', seg)
-                if m:
-                    current_tag = m.group(2)
-                    if current_tag == tag_name:
-                        if m.group(1) == '/':
-                            depth -= 1
-                            if depth == 0:
-                                end_idx = j
-                                break
-                        else:
-                            depth += 1
-            if end_idx != -1:
-                for idx in range(i, end_idx + 1):
-                    special_indices.add(idx)
-    
-    # Count the number of tokens in the special tag section
-    special_segments = [segment_tokens[i] for i in sorted(special_indices)]
-    special_tokens = sum(token_count for _, token_count in special_segments)
-    
-    # If the part with special tags has exceeded the token limit, truncate it and return.
-    if special_tokens > max_tokens:
-        result = []
-        current_tokens = 0
-        
-        for segment, token_count in reversed(special_segments):
-            if current_tokens + token_count <= max_tokens:
-                result.insert(0, segment)
-                current_tokens += token_count
-            else:
-                if re.match(r'</[^>]+>', segment):
-                    tag_name = re.search(r'</([^>]+)>', segment).group(1)
-                    start_tag_found = False
-                    for s, _ in reversed(result):
-                        if re.match(rf'<{tag_name}>', s):
-                            start_tag_found = True
-                            break
-                    if not start_tag_found:
-                        for s, tc in reversed(special_segments):
-                            if re.match(rf'<{tag_name}>', s):
-                                if current_tokens + tc <= max_tokens:
-                                    result.insert(0, s)
-                                    current_tokens += tc
-                                break
-        return ''.join(result) if result else segments[0]
-    
-    # There are remaining tokens; add other content from the end to the beginning.
-    remaining_tokens = max_tokens - special_tokens
-    additional_segments = []
-    
-    # Traverse all fragments from back to front
-    for i in range(len(segments) - 1, -1, -1):
-        if i in special_indices:
-            continue  
-        
-        segment, token_count = segment_tokens[i]
-        
-        # If adding the current fragment would exceed the limit, try adding part of it or skip it.
-        if remaining_tokens <= 0:
-            break
-        
-        if token_count <= remaining_tokens:
-            additional_segments.insert(0, segment)
-            remaining_tokens -= token_count
-        else:
-            # Try to partially add text content
-            if not re.match(r'<[^>]+>|</[^>]+>', segment): 
-                tokens = tokenizer.encode(segment)
-                partial_tokens = tokens[:remaining_tokens]
-                partial_text = tokenizer.decode(partial_tokens)
-                if partial_text:
-                    additional_segments.insert(0, partial_text)
-                    remaining_tokens = 0
-    
-    # Combination result: special tag part + other content added from back to front
-    return ''.join([seg for seg, _ in special_segments] + additional_segments)
-
-def extract_specific_tag_parallel_toolcalldict(text, allowed_tags=None):
     if allowed_tags is None:
-        allowed_tags = ['answer', 'plan', 'summary', 'classification', 'reasoning','tool_call']
+        allowed_tags = ['answer', 'plan', 'summary', 'classification', 'reasoning', 'tool_call']
 
-    tag_stack = deque()
-    tag_pairs = []
-    # Improved regular expression to ensure matching all allowed tags
     split_pattern = re.compile(r'(<\/?(?:{})>)'.format('|'.join(allowed_tags)))
     segments = split_pattern.split(text)
     segments = [s for s in segments if s.strip()]
 
-    # Extract information from the last tag and process it
+    # Extract information of the last tag and process
     if segments[-1].strip().lstrip("</").rstrip(">").strip() in allowed_tags:
         tool = segments[-1].strip().lstrip("</").rstrip(">").strip()
         content = segments[-2].strip()
@@ -315,60 +182,97 @@ def extract_specific_tag_parallel_toolcalldict(text, allowed_tags=None):
         think_content = segments[-4].strip() if len(segments) > 3 else None
         last_content = None
 
-        # Process tool_calls tag, supporting multiple tool calls
+        # Process 'tool_call' tag, supporting multiple tool calls
         if tool == "tool_call":
             parsed_content = []
+            tool_calls = content.split("{'id'")
+            new_tool_calls = []
+            for tool_call in tool_calls:
+                if tool_call:
+                    tool_call = "{'id'"+tool_call
+                    new_tool_calls.append(tool_call)
 
-            tool_calls = content.split("\n{'id':")
-            new_tool_calls = [tool_calls[0]]
-            for tool_call in tool_calls[1:]:
-                tool_call = "{'id':"+tool_call
-                new_tool_calls.append(tool_call)
+            # Clean whitespace from each call and filter empty strings
+            tool_calls = [call.strip() for call in new_tool_calls if call.strip()]
 
-            tool_calls = new_tool_calls
-
-            # Clean whitespace characters for each call
-            tool_calls = [call.strip() for call in tool_calls if call.strip()]
-
-            for call in tool_calls:
+            for call_idx, call in enumerate(tool_calls, start=1):
                 try:
-                    # Parse JSON format tool call
-                    call_dict = ast.literal_eval(call)
-
-                    # Extract key information
-                    tool_type = call_dict.get('name')
-                    if not tool_type:
+                    # 1. Attempt to parse the tool call dictionary
+                    try:
+                        call_dict = ast.literal_eval(call)
+                    except (SyntaxError, ValueError) as e:
+                        # Parsing syntax error: record specific error information
+                        parsed_item = {
+                            'type': "dummy_tool",
+                            'id': call_idx,  # Generate unique error ID using index
+                            'raw': call,
+                            'error_msg': f"Parsing arguments failed with error message: {str(e)}, please output arguments in json format string."
+                        }
+                        parsed_content.append(parsed_item)
                         continue
 
-                    # Extract parameters
-                    arguments = call_dict.get('arguments', {})
+                    # 2. Check if required keys exist in the dictionary
+                    required_keys = ['id', 'name', 'arguments']
+                    missing_keys = [k for k in required_keys if k not in call_dict]
+                    if missing_keys:
+                        parsed_item = {
+                            'type': "dummy_tool",
+                            'id': call_idx,
+                            'raw': call,
+                            'error_msg': f"Tool call has no {', '.join(missing_keys)}"
+                        }
+                        parsed_content.append(parsed_item)
+                        continue
 
-                    # Organize return data based on tool type
+                    # 3. Extract basic information
+                    tool_type = call_dict['name']
+                    call_id = call_dict['id']
+                    arguments = call_dict['arguments']
+
+                    # 4. Build basic parsed item (with default error field)
                     parsed_item = {
                         'type': tool_type,
-                        'id': call_dict.get('id'),
+                        'id': call_id,
                         'raw': call,
+                        'error_msg': None  # None when no error
                     }
 
-                    # Add specific type parameters
+                    # 5. Validate and add parameters based on tool type, record errors for missing parameters
                     if tool_type == 'web_search':
-                        parsed_item['query'] = arguments.get('query', '')
-                    elif tool_type == 'crawl_page':
-                        parsed_item['url'] = arguments.get('url', '')
-                        parsed_item['query'] = arguments.get('query', '')
-                    elif tool_type == 'code_execute':
-                        # Preserve line breaks in code
-                        parsed_item['code'] = arguments.get('code', '')
+                        query = arguments.get('query', '')
+                        parsed_item['query'] = query
 
+                    elif tool_type == 'crawl_page':
+                        url = arguments.get('url', '')
+                        query = arguments.get('query', '')
+                        parsed_item['url'] = url
+                        parsed_item['query'] = query
+
+
+                    elif tool_type == 'code_execute':
+                        code = arguments.get('code', '')
+                        parsed_item['code'] = code
+
+                    else:
+                        parsed_item['type'] = "dummy_tool"
+                        parsed_item['error_msg'] = "Unkown tool name."
+
+                    # 6. Add parsed item to result list
                     parsed_content.append(parsed_item)
 
-                except (SyntaxError, ValueError, KeyError) as e:
-                    # Handle parsing errors
-                    continue
+                # Catch other unexpected errors
+                except Exception as e:
+                    parsed_item = {
+                        'type': "dummy_tool",
+                        'id': call_idx,
+                        'raw': call,
+                        'error_msg': f"Parsing arguments failed with error message: {str(e)}, please output arguments in json format string."
+                    }
+                    parsed_content.append(parsed_item)
 
             return think_content, last_content, tool, parsed_content
         else:
-            # For other tags, return original content directly
+            # Directly return original content for other tags
             return think_content, last_content, tool, content
     else:
         assert segments[-2].strip().lstrip("</").rstrip(">").strip() in allowed_tags
@@ -376,5 +280,5 @@ def extract_specific_tag_parallel_toolcalldict(text, allowed_tags=None):
         content = segments[-3].strip()
         think_content = None
         last_content = segments[-1].strip()
-        # For other tags, return original content directly
+        # Directly return original content for other tags
         return think_content, last_content, tool, content

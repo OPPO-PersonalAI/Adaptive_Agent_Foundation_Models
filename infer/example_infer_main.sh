@@ -18,12 +18,9 @@ export OPENAI_API_URL="https://api.openai.com/v1"
 export OPENAI_API_KEY="your-openai-api-key-here"
 
 # Tool Server URLs
-export WEBSEARCH_URL="http://localhost:9002"
-export CRAWL_PAGE_URL="http://localhost:9000"
-export CODE_EXEC_URL="http://localhost:9003"
-
-# JINA API Key (for web search and page crawling)
-export JINA_API_KEY="your-jina-api-key-here"
+export WEBSEARCH_URL="http://localhost:9002/search"
+export CRAWL_PAGE_URL="http://localhost:9001/crawl_page"
+export CODE_EXEC_URL="http://localhost:9003/code_exec"
 
 echo "Environment variables set:"
 echo "- MODEL_NAME: $MODEL_NAME"
@@ -37,21 +34,19 @@ echo ""
 # Example 1: Auto mode with default parameters
 echo "Example 1: Auto mode with default parameters"
 python infer_main.py \
-    --input_file ./data/example.json \
-    --output_file ./results/auto_output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/auto_output.jsonl \
     --adaptive auto \
     --temperature 1.0 \
-    --max_steps_agent 60 \
-    --max_steps_reasoning 6 \
-    --max_steps_instant 6
+    --max_steps_agent 60 
 
 echo ""
 
-# Example 2: Force agentic mode for complex tasks
-echo "Example 2: Force agentic mode for complex tasks"
+# Example 2: Force agentic mode
+echo "Example 2: Force agentic mode"
 python infer_main.py \
-    --input_file ./data/complex_tasks.json \
-    --output_file ./results/agentic_output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/agentic_output.jsonl \
     --adaptive toolcalling_agent \
     --max_steps_agent 100 \
     --temperature 0.8 \
@@ -59,24 +54,22 @@ python infer_main.py \
 
 echo ""
 
-# Example 3: Force reasoning mode for analytical tasks
-echo "Example 3: Force reasoning mode for analytical tasks"
+# Example 3: Force reasoning mode
+echo "Example 3: Force reasoning mode"
 python infer_main.py \
-    --input_file ./data/analytical_tasks.json \
-    --output_file ./results/reasoning_output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/reasoning_output.jsonl \
     --adaptive reasoning_agent \
-    --max_steps_reasoning 10 \
     --temperature 0.5
 
 echo ""
 
-# Example 4: Force instant mode for simple tasks
-echo "Example 4: Force instant mode for simple tasks"
+# Example 4: Force instant mode 
+echo "Example 4: Force instant mode"
 python infer_main.py \
-    --input_file ./data/simple_tasks.json \
-    --output_file ./results/instant_output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/instant_output.jsonl \
     --adaptive instant \
-    --max_steps_instant 3 \
     --temperature 0.3
 
 echo ""
@@ -84,11 +77,10 @@ echo ""
 # Example 5: High-performance parallel processing
 echo "Example 5: High-performance parallel processing"
 python infer_main.py \
-    --input_file ./data/large_dataset.json \
-    --output_file ./results/parallel_output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/parallel_output.jsonl \
     --adaptive auto \
     --parallel_per_dataset 10 \
-    --parallel_on_dataset 8 \
     --max_steps_agent 80
 
 echo ""

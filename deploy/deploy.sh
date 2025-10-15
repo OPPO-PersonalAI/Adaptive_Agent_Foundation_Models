@@ -52,8 +52,7 @@ for ((i=0; i<INSTANCES; i++)); do
     
     # Start service instance
     echo "Starting instance ${instance_name}: port ${port}, using GPU ${gpu_list}"
-    
-    # --rope-scaling '{\"rope_type\":\"yarn\",\"factor\":4.0,\"original_max_position_embeddings\":32768}' \
+
     nohup bash -c "
         export CUDA_VISIBLE_DEVICES=${gpu_list}
         vllm serve ${model_path} \

@@ -11,7 +11,7 @@
   <a href='https://huggingface.co/collections/PersonalAILab/afm-datasets-6892140eaad360ea5ccdcde1'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-Huggingface-yellow'></a>
 </div>
 
-This is the official repository for our paper "A^2FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning". This is an adaptive branch of [AFM](https://github.com/OPPO-PersonalAI/Agent_Foundation_Models/). Different problems are solved using different modes (agentic, reasoning, instant) to ensure that every token consumption is put to the best use. Our work provides an approach that leverages the accuracy rate in inter-group rollouts within Reinforcement Learning (RL), using the difficulty level of problems to train the model's adaptive capability.
+This is the official repository for our paper "A^2FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning". This is an adaptive branch of [AFM](https://github.com/OPPO-PersonalAI/Agent_Foundation_Models/). Different problems are solved using different modes (agentic, reasoning, instant) to ensure that every token consumption is put to the best use. Our work provides an approach that leverages the accuracy rate in inter-gro2up rollouts within Reinforcement Learning (RL), using the difficulty level of problems to train the model's adaptive capability.
 
 <div align="center">
   <img src="./assets/adaptive_afm.jpg" width="95%" height="auto" />
@@ -81,12 +81,8 @@ Our tool server infrastructure provides **highly stable and fast** tool executio
 - **⚡ Asynchronous Acceleration**: Multi-threaded and async processing for concurrent tool operations
 - **🔧 Multi-API Support**: Fallback mechanisms across multiple API providers for enhanced reliability
 
-Before starting tool servers, configure all required environment variables in `.env` (refer to `./server/env_template`):
+Starting tool servers, refer to `./server/SERVER_README.md`:
 
-```bash
-cd ./server
-bash ./start_servers_v4.sh start
-```
 
 **Available Tool Servers:**
 
@@ -94,13 +90,14 @@ bash ./start_servers_v4.sh start
 - **Page Crawler Server**: Concurrent page crawling with AI-powered summarization
 - **Code Executor Server**: Secure Python code execution in nsjail sandbox
 
-Test the deployment:
-
-```bash
-bash ./start_servers_v4.sh test
-```
 
 ## 2. Model Download & Inference
+
+### Install Dependencies
+First, install the required dependencies by executing the command below to install packages listed in `requirements.txt`:
+```bash
+pip install -r requirements.txt
+```
 
 ### Model Download
 
@@ -154,11 +151,11 @@ export JINA_API_KEY="your-jina-api-key-here"
 
 **2. Run Inference**
 
-Prepare your test dataset (refer to `/data/example.json` format) and run inference:
+Prepare a test dataset (refer to `/data/example.json` format) and run inference. The input is .json/.jsonl file and the output is .jsonl file.
 
 ```bash
 cd ./infer
-python infer_main.py --input_file ./data/example.json --output_file ./results/output.jsonl
+python infer_main.py --input_file ../data/example.json --output_file ../results/output.jsonl
 ```
 
 **Quick Start with Example Script:**
@@ -177,35 +174,34 @@ bash example_infer_main.sh
 - `reasoning_agent`: Force reasoning mode for analytical tasks
 - `instant`: Force instant mode for simple tasks (no tool calls)
 
-**Max Steps Configuration** (renamed from retry_attempts for clarity):
+**Max Steps Configuration**:
 - `--max_steps_agent`: Maximum execution steps for agentic mode (default: 60)
-- `--max_steps_reasoning`: Maximum execution steps for reasoning mode (default: 6)
-- `--max_steps_instant`: Maximum execution steps for instant mode (default: 6)
 
 **Example Usage**:
+
 ```bash
+cd ./infer
 # Auto mode with custom parameters
 python infer_main.py \
-    --input_file ./data/example.json \
-    --output_file ./results/output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/output.jsonl \
     --adaptive auto \
     --max_steps_agent 60 \
     --temperature 1.0 \
     --parallel_per_dataset 5
 
-# Force agentic mode for complex tasks
+# Force agentic mode
 python infer_main.py \
-    --input_file ./data/complex_tasks.json \
-    --output_file ./results/agentic_output.jsonl \
+    --input_file ../data/example.json \
+    --output_file ../results/agentic_output.jsonl \
     --adaptive toolcalling_agent \
     --max_steps_agent 100
 
-# Force instant mode for simple tasks
+# Force instant mode
 python infer_main.py \
-    --input_file ./data/simple_tasks.json \
-    --output_file ./results/instant_output.jsonl \
-    --adaptive instant \
-    --max_steps_instant 3
+    --input_file ../data/example.json \
+    --output_file ../results/instant_output.jsonl \
+    --adaptive instant 
 ```
 
 **Help**: Run `python infer_main.py --help` for complete parameter list.

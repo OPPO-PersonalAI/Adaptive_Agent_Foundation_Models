@@ -1,0 +1,15 @@
+# Core Model and Inference
+vllm==0.9.1
+torch==2.7.0
+transformers==4.52.4 # Loading Pretrained Models/Tokenizers (AutoTokenizers)
+huggingface-hub==0.33.0
+
+# OpenAI API Client
+openai==1.88.0
+
+# Tools and Network Requests
+requests==2.32.4
+
+# Data Processing
+jsonlines==3.1.0 # For JSONL file processing
+filelock==3.18.0

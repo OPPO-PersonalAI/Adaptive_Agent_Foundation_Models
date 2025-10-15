@@ -1,4 +1,4 @@
-#Configure .env before start server!!
+#Configure .env before start server!
 
 # jina api
 JINA_BASE_URL="https://URL.URL.URL/"

@@ -23,10 +23,8 @@ def parse_code_blobs(code_blob: str) -> str:
             ast.parse(code_blob)
             return code_blob
         except SyntaxError as e:
-            # 处理缩进错误
             if "unexpected indent" in str(e):
                 raise IndentationError(f"Indentation error in code: {e}")
-            # 处理其他语法错误
             raise ValueError(
                 f"Your code snippet is invalid Python code. Error: {e}\n"
                 f"Here is your code snippet:\n{code_blob}\n"
@@ -73,7 +71,6 @@ def fix_final_answer_code(code: str) -> str:
     code = re.sub(variable_regex, "final_answer_variable", code)
     return code
 def get_conda_env_paths():
-    """获取当前conda环境的PYTHONPATH和LD_LIBRARY_PATH"""
     python_exec = sys.executable
     if "conda" not in python_exec:
         raise RuntimeError("Not running in a conda environment")
@@ -87,12 +84,7 @@ def get_conda_env_paths():
     return python_path, ld_path
 
 def get_env_paths():
-    """获取当前环境的PYTHONPATH和LD_LIBRARY_PATH
-    自动检测Conda环境或系统Python环境，返回对应的路径
-    """
     python_exec = sys.executable
-    # print('python_exec:',python_exec)
-    # 更可靠的Conda环境检测方法
     is_conda = (
         "conda" in python_exec or 
         "CONDA_PREFIX" in os.environ or
@@ -100,29 +92,22 @@ def get_env_paths():
     )
     
     if is_conda:
-        # print('is conda')
-        # Conda环境路径处理
         conda_env_path = os.environ.get("CONDA_PREFIX", str(Path(python_exec).parent.parent))
         python_version = f"python{sys.version_info.major}.{sys.version_info.minor}"
         
         python_path = f"{conda_env_path}/lib/{python_version}/site-packages"
         ld_path = f"{conda_env_path}/lib:/usr/local/lib:/usr/lib"
         
-        # 添加Conda环境特有的库路径
         if "CONDA_PREFIX" in os.environ:
             ld_path = f"{os.environ['CONDA_PREFIX']}/lib:{ld_path}"
     else:
-        # print('syspath')
-        # 系统Python环境路径处理
         python_path = ":".join([
             f"/usr/local/lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages",
             f"/usr/lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages"
         ])
         
-        # 标准Linux库路径
         ld_path = "/usr/local/lib:/usr/lib"
         
-        # 如果Python安装在非标准位置
         if python_exec.startswith("/usr/local"):
             python_path = f"/usr/local/lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages:{python_path}"
             ld_path = f"/usr/local/lib:{ld_path}"
@@ -131,19 +116,16 @@ def get_env_paths():
 
 
 def run_in_nsjail(code_str, has_input=False):
-    """在nsjail中安全执行Python代码"""
-    # 获取当前conda环境的路径
     python_path, ld_path = get_env_paths()
     temp_dir = tempfile.mkdtemp(prefix="nsjail_")
     temp_work_dir = os.path.join(temp_dir, "workspace")
     os.makedirs(temp_work_dir, exist_ok=True)
     try:
-        # 构建nsjail命令
         code_path = os.path.join(temp_dir, "code.py")
         with open(code_path, 'w') as f:
             f.write(code_str)
         
-        # print(f'code_path:{code_path}')
+        nsjail_path = os.environ.get("NSJAILPATH")
         cmd = [
             nsjail_path,
             "--disable_proc",
@@ -152,30 +134,27 @@ def run_in_nsjail(code_str, has_input=False):
             "--group", "nogroup",
             "--chroot", "/",
             "--cwd", "/tmp/workspace",
-            "--rlimit_as", "50000",  # 50000MB 内存空间
-            "--rlimit_cpu", "20",    # 10秒CPU时间限制
+            "--rlimit_as", "50000",  # 50000MB of memory space
+            "--rlimit_cpu", "20",    # 20 second CPU time limit
             "--bindmount_ro", "/opt:/opt",
             "--bindmount_ro", f"{code_path}:/tmp/code.py",
-            "--bindmount", f"{temp_work_dir}:/tmp/workspace",  # 可读写的工作目录
-            "--bindmount_ro", "/tmp/empty:/mnt",  # 隔离/mnt
+            "--bindmount", f"{temp_work_dir}:/tmp/workspace",  # Readable and writable working directory
+            "--bindmount_ro", "/tmp/empty:/mnt",  # Isolate /mnt
             "--env", f"PYTHONPATH={python_path}",
             "--env", f"LD_LIBRARY_PATH={ld_path}",
             "--really_quiet",
             "--",
             sys.executable,
-            # "-c",
             "/tmp/code.py"#code_str
         ]
         
-        # 创建空的/mnt隔离目录
         os.makedirs("/tmp/empty", exist_ok=True)
         
-        # 执行命令
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=25  # 总超时时间
+            timeout=25 
         )
         entry = {
             "success": result.returncode == 0 or result.returncode == 99,
@@ -196,10 +175,9 @@ def run_in_nsjail(code_str, has_input=False):
             "stderr": error_output
         }
     finally:
-        # 清理临时文件
-        # 6. 强制清理临时目录（包括所有子内容）
+        # Clean temporary files
+        # Force cleanup of temporary directories (including all subdirectories)
         try:
-            # print('remove',temp_dir)
             shutil.rmtree(temp_dir, ignore_errors=True)
         except Exception as e:
             print(f'[nsjail ]',e)
@@ -208,32 +186,25 @@ def run_in_nsjail(code_str, has_input=False):
 
 
 def mock_input_in_code(code_blob, input_str):
-    # 处理输入字符串，确保是字符串格式
     if isinstance(input_str, list):
         input_str = "\n".join(input_str)
     
-    # 创建输入行的迭代器
     input_lines = input_str.splitlines(keepends=True)
     input_lines_without_ends = [line.rstrip('\n') for line in input_lines]
     
-    # 替换input()调用
     def replace_input(match):
         prompt = match.group(1) if match.group(1) else ''
         return f'next(input_iterator)'
-    
-    # 替换sys.stdin.readline()调用
+
     def replace_stdin_readline(match):
         return f'sys_stdin_readline()'
     
-    # 替换sys.stdin.readlines()调用
     def replace_stdin_readlines(match):
         return f'sys_stdin_readlines()'
     
-    # 替换sys.stdin.read()调用
     def replace_stdin_read(match):
         return f'sys_stdin_read()'
     
-    # 替换open()调用（用于读取标准输入的情况）
     def replace_open(match):
         filename = match.group(1)
         mode = match.group(2) if match.group(2) else 'r'
@@ -241,41 +212,41 @@ def mock_input_in_code(code_blob, input_str):
             return f'mock_open_stdin()'
         return f'open({filename}, {mode})'
     
-    # 处理input()调用
+
     modified_code = re.sub(
         r'input$([^)]*)$',
         replace_input,
         code_blob
     )
     
-    # 处理sys.stdin.readline()调用
+
     modified_code = re.sub(
         r'sys\.stdin\.readline$$',
         replace_stdin_readline,
         modified_code
     )
     
-    # 处理sys.stdin.readlines()调用
+
     modified_code = re.sub(
         r'sys\.stdin\.readlines$$',
         replace_stdin_readlines,
         modified_code
     )
     
-    # 处理sys.stdin.read()调用
+
     modified_code = re.sub(
         r'sys\.stdin\.read$$',
         replace_stdin_read,
         modified_code
     )
     
-    # 处理open()调用（针对sys.stdin的特殊情况）
+
     modified_code = re.sub(
         r'open$(sys\.stdin|/dev/stdin)(?:,\s*([\'"]\w+[\'"]))?$',
         replace_open,
         modified_code
     )
-    # noneed setup
+
     no_need_setup=f"""
 from unittest.mock import mock_open, patch
 
@@ -295,7 +266,7 @@ def sys_stdin_read():
 def mock_open_stdin():
     return StringIO({input_str!r})
 """
-    # 添加模拟输入的代码
+
     input_setup = f"""
 import sys
 from io import StringIO
@@ -305,7 +276,6 @@ sys_stdin_content = StringIO({input_str!r})
 sys.stdin = sys_stdin_content
 """
     
-    # 组合最终的代码
     final_code = input_setup + modified_code
     return final_code
 
@@ -367,7 +337,6 @@ def exec_nsjail(code_blob, input_str=''):
     return succ, observation
 
 def extract_output(observation):
-    # 检查 final_answer 是否被调用
     output = None
     is_final_answer = False
     if "[STDOUT:BEGIN]" in observation:
@@ -387,12 +356,10 @@ class SandboxPythonExecutor:
     def wrap_code_action(self, code_action):
         indent = '    '
     
-        # 将 code_action 的每一行都添加缩进
         indented_code = '\n'.join(
             f"{indent}{line}" for line in code_action.split('\n')
         )
 
-        # 包装 code_action，注入 final_answer
         wrapped_code = f'''
 import sys
 import traceback
@@ -441,7 +408,7 @@ except Exception as e:
                     f'[IS_FINAL_ANSWER]: {is_final_answer}'
                     )
                     return output_str
-                # 可能有些test case的output结尾可能有 \n or ' ', 消除他们
+
                 if 'output' in test_case:
                     if output != (test_case['output'].replace('\r','')[:-1].strip() if test_case['output'][-1] == '\n' else test_case['output'].replace('\r','').strip()):
                         fail_test_case = {}
@@ -449,10 +416,6 @@ except Exception as e:
                         fail_test_case['expected output'] = test_case['output']
                         fail_test_case['actual output'] = output
                         fail_test_cases.append(fail_test_case)
-                        # # 不用测试完所有数据，加速推理
-                        # if len(fail_test_cases) > 3:
-                        #     break
-
                     else:
                         success_test_cases.append(test_case)
                 else:

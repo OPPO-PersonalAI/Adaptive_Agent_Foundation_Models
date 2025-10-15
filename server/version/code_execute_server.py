@@ -46,11 +46,6 @@ class CodeExecuteRequest(BaseModel):
     code_str_list: List[str] = Field(..., description="List of code str to execute")
     parameter_list: List[str] = Field(..., description="List of code parameters when executing the code")
 
-    # legacy
-    # task: str = Field(None, description="Task description")
-    # messages: Optional[List[Dict]] = Field(None, description="Message history (optional, for future use)")
-
-
 class CodeExecuteResponse(BaseModel):
     success: bool
     obs: List = None
