@@ -147,7 +147,7 @@ export CODE_EXEC_URL="http://localhost:9003"
 
 **2. Run Inference**
 
-Prepare a test dataset (refer to `/data/example.json` format) and run inference. The input is .json/.jsonl file and the output is .jsonl file.
+Prepare your test dataset (refer to `/data/example.json` format) and run inference. The input is .json/.jsonl file and the output is .jsonl file.
 
 ```bash
 cd ./infer
