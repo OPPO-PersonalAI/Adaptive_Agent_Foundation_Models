@@ -5,9 +5,8 @@
 
 <div align="center">
   <a href='https://chain-of-agents-afm.github.io/'><img src='https://img.shields.io/badge/Project-Github-red?logo=GitHub&logoWidth=40'></a>
-  <a href='https://arxiv.org/abs/'><img src='https://img.shields.io/badge/Paper AFM-arXiv-d63031?logo=arxiv&logoColor=white'></a>
-  <a href='https://huggingface.co/collections/PersonalAILab/afm-689200e11d0b21a67c015ba8'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Models-Huggingface-yellow'></a>
-  <a href='https://huggingface.co/collections/PersonalAILab/afm-datasets-6892140eaad360ea5ccdcde1'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-Huggingface-yellow'></a>
+  <a href='https://arxiv.org/abs/2510.12838'><img src='https://img.shields.io/badge/Paper AFM-arXiv-d63031?logo=arxiv&logoColor=white'></a>
+  <a href='https://huggingface.co/PersonalAILab/A2FM-32B-rl'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Models-Huggingface-yellow'></a>
 </div>
 
 This is the official repository for our paper "A<sup>2</sup>FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning". This is an adaptive branch of [AFM](https://github.com/OPPO-PersonalAI/Agent_Foundation_Models/). Different problems are solved using different modes (agentic, reasoning, instant) to ensure that every token consumption is put to the best use. Our work provides an approach that leverages the accuracy rate in inter-gro2up rollouts within Reinforcement Learning (RL), using the difficulty level of problems to train the model's adaptive capability.
@@ -25,12 +24,16 @@ A<sup>2</sup>FM presents a **unified framework** that bridges the gap between re
 </div>
 
 ## Key Innovations & Highlights
-- 🧠 **Route-then-Align Principle**: A unified framework that bridges reasoning-centric and agentic LLMs through adaptive mode selection, eliminating the inefficiency gap where both families tend to overthink or over-call tools.
-- ⚡ **Three-Mode Architecture**: 
-  - **Instant Mode**: Direct reasoning for simple tasks (no tool calls)
-  - **Agentic Mode**: Tool-augmented reasoning for complex problems  
-  - **Reasoning Mode**: Deep chain-of-thought for analytical tasks
-- 🎯 **Adaptive Policy Optimization (APO)**: The key to training efficient models - enforces adaptive sampling across modes with cost-regularized rewards.
+
+🧠 **Route-then-Align Principle**: A unified framework that bridges reasoning-centric and agentic LLMs through adaptive mode selection, eliminating the inefficiency gap where both families tend to overthink or over-call tools.
+
+⚡ **Three-Mode Architecture**: 
+- **Instant Mode**: Direct reasoning for simple tasks (no tool calls)
+- **Agentic Mode**: Tool-augmented reasoning for complex problems  
+- **Reasoning Mode**: Deep chain-of-thought for analytical tasks
+
+🎯 **Adaptive Policy Optimization (APO)**: The key to training efficient models - enforces adaptive sampling across modes with cost-regularized rewards.
+
 ### Training Efficient Models with APO
 
 <div align="center">
@@ -49,7 +52,8 @@ A<sup>2</sup>FM presents a **unified framework** that bridges the gap between re
 - **$0.00487 per correct answer** - substantially higher cost efficiency while maintaining comparable accuracy
 
 # Table of Contents
-- [Overview 🎯](#overview-)
+
+- [Overview](#overview-)
   - [Key Innovations & Highlights](#key-innovations--highlights)
   - [Training Efficient Models with APO](#training-efficient-models-with-apo)
 - [Quick Start](#quick-start)
@@ -139,9 +143,6 @@ export OPENAI_API_KEY="your-openai-api-key-here"
 export WEBSEARCH_URL="http://localhost:9002"
 export CRAWL_PAGE_URL="http://localhost:9000"
 export CODE_EXEC_URL="http://localhost:9003"
-
-# JINA API Key (for web search and page crawling)
-export JINA_API_KEY="your-jina-api-key-here"
 ```
 
 **2. Run Inference**
@@ -169,7 +170,7 @@ bash example_infer_main.sh
 - `reasoning_agent`: Force reasoning mode for analytical tasks
 - `instant`: Force instant mode for simple tasks (no tool calls)
 
-**Max Steps Configuration**:
+**Max Steps Configuration** (renamed from retry_attempts for clarity):
 - `--max_steps_agent`: Maximum execution steps for agentic mode (default: 60)
 
 **Example Usage**:
@@ -220,10 +221,10 @@ We would like to express our sincere gratitude to the original authors and contr
 If you find A<sup>2</sup>FM useful in your research or applications, we would appreciate it if you could cite our work:
 
 ```bibtex
-@article{xxxx,
-  title={A^2FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning},
-  author={Qianben Chen and Jingyi Cao and Jiayu Zhang and Tianrui Qin and Xiaowan Li and King Zhu and Dingfeng Shi and He Zhu and Minghao Liu and Xiaobo Liang and Ge Zhang and Jian Yang and Yuchen Eleanor Jiang and Wangchunshu Zhou},
-  journal={arXiv preprint arXiv:xxxx.xxxxx},
+@article{chen2025textsuperscript,
+  title={A$\backslash$textsuperscript $\{$2$\}$ FM: An Adaptive Agent Foundation Model for Tool-Aware Hybrid Reasoning},
+  author={Chen, Qianben and Cao, Jingyi and Zhang, Jiayu and Qin, Tianrui and Li, Xiaowan and Zhu, King and Shi, Dingfeng and Zhu, He and Liu, Minghao and Liang, Xiaobo and others},
+  journal={arXiv preprint arXiv:2510.12838},
   year={2025}
 }
 ```

@@ -51,7 +51,7 @@ cd server/
 ## 🧪 Test Servers
 1. Configure environment variables in the `servers/.env` file and execute the `start_servers.sh start` startup script.
 2. Run `start_servers.sh test` to test all services.
-3. To test a specific server, configure environment variables in `server/version/TestEnvironment.sh` and directly execute the corresponding test script in the `server/server_tests/` directory. Each test script contains specific execution command examples.
+3. To test a specific server, configure environment variables in `server/version/TestEnvironment.sh` and directly execute the corresponding test script in the `server/version/` directory. Each test script contains specific execution command examples.
 
 
 ## 🔌 Tool Server Interface Details
